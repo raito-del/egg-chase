@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <title>Egg Chase</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <canvas id="game"></canvas>
+
+  <div id="menu" class="overlay">
+    <div class="card">
+      <h1>EGG<br>CHASE</h1>
+      <p class="sub">ডিমগুলো এড়িয়ে দৌড়াও!</p>
+      <label class="label" for="name">তোমার নাম (এই browser এ মনে থাকবে)</label>
+      <input id="name" type="text" maxlength="12" placeholder="তোমার নাম" autocomplete="off" />
+      <button id="start" class="btn">শুরু করো</button>
+      <p class="help">↑/↓ বা W/S দিয়ে লেন বদলাও · P দিয়ে পজ<br>মোবাইলে স্ক্রিনের উপরে/নিচে ট্যাপ করো</p>
+    </div>
+  </div>
+
+  <div id="hud" class="hud hidden">
+    <div class="pill"><span id="dist">0</span> m</div>
+    <button id="pause" class="pill pause-btn" aria-label="পজ">❚❚</button>
+    <div class="pill">Best <span id="best">0</span> m</div>
+  </div>
+
+  <div id="pauseScreen" class="overlay hidden">
+    <div class="card">
+      <h2>পজ</h2>
+      <button id="resume" class="btn">চালিয়ে যাও</button>
+      <button id="restartPause" class="btn ghost">আবার শুরু</button>
+    </div>
+  </div>
+
+  <div id="over" class="overlay hidden">
+    <div class="card">
+      <h2>Game Over</h2>
+      <p id="overMsg" class="sub"></p>
+      <p class="score">স্কোর: <span id="overScore">0</span> m</p>
+      <p class="sub">সেরা: <span id="overBest">0</span> m</p>
+      <button id="restart" class="btn">আবার খেলো</button>
+    </div>
+  </div>
+
+  <script src="js/main.js"></script>
+</body>
+</html>
