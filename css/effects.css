@@ -1,0 +1,118 @@
+/* ============================================================
+   Egg Chase — ভিজুয়াল এফেক্ট
+   এই ফাইল style.css এর পরে লোড হয়। গেমের JS বদলাতে হয় না।
+   ============================================================ */
+
+/* ---------- স্ক্রিনের কিনারায় অন্ধকার (ভিগনেট) ---------- */
+body::after {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: radial-gradient(ellipse at center, rgba(0,0,0,0) 55%, rgba(0,0,0,0.45) 100%);
+}
+
+/* ---------- মেনু ও কার্ডে আলতো আলো ---------- */
+.overlay {
+  animation: fadeIn 0.3s ease-out;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.card {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(255, 210, 63, 0.18);
+}
+.card::before {
+  /* কার্ডের উপর দিয়ে একটা হালকা আলোর রেখা যায় */
+  content: "";
+  position: absolute;
+  top: 0; left: -60%;
+  width: 40%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.08), transparent);
+  transform: skewX(-20deg);
+  animation: sheen 4.5s ease-in-out infinite;
+  pointer-events: none;
+}
+@keyframes sheen {
+  0%   { left: -60%; }
+  55%  { left: 130%; }
+  100% { left: 130%; }
+}
+
+/* ---------- শিরোনামে রঙের ঢেউ ---------- */
+h1 {
+  background-size: 200% 100%;
+  animation: titleWave 4s ease-in-out infinite, titleFloat 3s ease-in-out infinite;
+}
+@keyframes titleWave {
+  0%, 100% { background-position: 0% 50%; }
+  50%      { background-position: 100% 50%; }
+}
+@keyframes titleFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-4px); }
+}
+
+/* ---------- বাটনে আলোর ঝলক ---------- */
+.btn {
+  position: relative;
+  overflow: hidden;
+}
+.btn::after {
+  content: "";
+  position: absolute;
+  top: 0; left: -75%;
+  width: 50%; height: 100%;
+  background: linear-gradient(100deg, transparent, rgba(255,255,255,0.55), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.6s ease;
+  pointer-events: none;
+}
+.btn:hover::after { left: 130%; }
+
+/* ---------- HUD এর পিল ---------- */
+.pill {
+  position: relative;
+  box-shadow: 0 0 0 1px rgba(255, 210, 63, 0.12), 0 6px 18px rgba(0, 0, 0, 0.35);
+  animation: pillGlow 3.5s ease-in-out infinite;
+}
+@keyframes pillGlow {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255,210,63,0.12), 0 6px 18px rgba(0,0,0,0.35); }
+  50%      { box-shadow: 0 0 0 1px rgba(255,210,63,0.35), 0 6px 22px rgba(255,210,63,0.15); }
+}
+.pill span {
+  text-shadow: 0 0 10px rgba(255, 210, 63, 0.5);
+}
+.hud .pill:last-child span {
+  text-shadow: 0 0 10px rgba(255, 93, 143, 0.5);
+}
+
+/* ---------- খেলা শেষে কার্ড কাঁপবে ---------- */
+.over .card {
+  animation: pop 0.35s ease-out, shake 0.45s ease-in-out 0.1s;
+}
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%      { transform: translateX(-8px); }
+  40%      { transform: translateX(7px); }
+  60%      { transform: translateX(-5px); }
+  80%      { transform: translateX(3px); }
+}
+
+/* ---------- নামের ঘর ফোকাসে আলো ---------- */
+input:focus {
+  box-shadow: 0 0 0 3px rgba(255, 210, 63, 0.2);
+}
+
+/* ---------- কম গতি পছন্দ করলে অ্যানিমেশন বন্ধ ---------- */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
