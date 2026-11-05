@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#0a0e1f" />
   <title>Egg Chase</title>
   <link rel="stylesheet" href="css/style.css" />
 </head>
@@ -13,10 +14,13 @@
     <div class="card">
       <h1>EGG<br>CHASE</h1>
       <p class="sub">ডিমগুলো এড়িয়ে দৌড়াও!</p>
-      <label class="label" for="name">তোমার নাম (এই browser এ মনে থাকবে)</label>
-      <input id="name" type="text" maxlength="12" placeholder="তোমার নাম" autocomplete="off" />
+      <label class="label" for="name">তোমার নাম</label>
+      <input id="name" type="text" maxlength="12" placeholder="Enter your name" autocomplete="off" />
       <button id="start" class="btn">শুরু করো</button>
-      <p class="help">↑/↓ বা W/S দিয়ে লেন বদলাও · P দিয়ে পজ<br>মোবাইলে স্ক্রিনের উপরে/নিচে ট্যাপ করো</p>
+      <p class="help">
+        ডেস্কটপ: ↑ ↓ বা W S দিয়ে লেন বদলাও · P দিয়ে পজ<br>
+        মোবাইল: স্ক্রিনের উপরের অর্ধেক ট্যাপ = উপরের লেন, নিচের অর্ধেক = নিচের লেন
+      </p>
     </div>
   </div>
 
@@ -44,6 +48,7 @@
     </div>
   </div>
 
+  <script src="js/config.js"></script>
   <script src="js/main.js"></script>
 </body>
 </html>

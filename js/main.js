@@ -2,6 +2,7 @@
 (function () {
   'use strict';
 
+  const CONFIG = window.EGG_CHASE_CONFIG || {};
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
   const $ = (id) => document.getElementById(id);
@@ -17,10 +18,11 @@
   const LANE_COUNT = 3;
   const BEST_KEY = 'eggchase_best';
   const NAME_KEY = 'eggchase_name';
-  // ডিফল্ট নাম: নতুন কেউ খেললে এটাই আসবে। এখানে নিজের পছন্দের নাম লিখতে পারো
-  const DEFAULT_NAME = 'Runner';
+  const DEFAULT_NAME = String(CONFIG.playerName || '').trim().slice(0, 12) || 'Runner';
+  const CHASER_NAME = String(CONFIG.chaserName || '').trim().slice(0, 12) || 'Chaser';
+  const FORCE_NAME = !!CONFIG.forceName;
 
-  let W = 0, H = 0, DPR = 1, S = 1; // S = size scale
+  let W = 0, H = 0, DPR = 1, S = 1; // S = আকারের স্কেল
 
   function clamp(v, a, b) { return v < a ? a : v > b ? b : v; }
   function rand(a, b) { return a + Math.random() * (b - a); }
@@ -31,33 +33,35 @@
   function saveBest(v) {
     try { localStorage.setItem(BEST_KEY, String(v)); } catch (e) { /* ignore */ }
   }
-
   function loadName() {
+    if (FORCE_NAME) return DEFAULT_NAME;
     try { return localStorage.getItem(NAME_KEY) || DEFAULT_NAME; } catch (e) { return DEFAULT_NAME; }
   }
   function saveName(n) {
+    if (FORCE_NAME) return;
     try { localStorage.setItem(NAME_KEY, n); } catch (e) { /* ignore */ }
   }
 
   const game = {
     state: 'menu',      // menu | playing | paused | over
-    name: 'Runner',
-    lane: 1,            // target lane 0..2
-    laneVis: 1,         // eased lane for drawing
-    dist: 0,            // meters
-    speed: 170,         // px per second
+    name: DEFAULT_NAME, // খেলোয়াড়ের নাম
+    lane: 1,            // টার্গেট লেন 0..2
+    laneVis: 1,         // আঁকার জন্য মসৃণ লেন
+    dist: 0,            // মিটার
+    speed: 170,         // পিক্সেল/সেকেন্ড
     time: 0,
     spawnT: 1,
-    phase: 0,           // running animation phase
-    throwT: 0,          // chaser throw animation 0..1
+    phase: 0,           // দৌড়ানোর অ্যানিমেশন
+    throwT: 0,          // তাড়াকারীর ছোড়ার অ্যানিমেশন
     eggs: [],
     parts: [],
     best: loadBest(),
     bgOff: 0,
     clouds: [],
+    dustT: 0,
   };
 
-  /* ---------- layout ---------- */
+  /* ---------- লেআউট ---------- */
 
   function resize() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -68,7 +72,7 @@
     canvas.style.width = W + 'px';
     canvas.style.height = H + 'px';
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-    S = clamp(H / 700, 0.6, 1.4);
+    S = clamp(Math.min(H / 700, W / 520), 0.55, 1.4);
     if (game.clouds.length === 0) initClouds();
   }
 
@@ -92,7 +96,7 @@
   function playerX() { return W * 0.28; }
   function chaserX() { return W * 0.08; }
 
-  /* ---------- game logic ---------- */
+  /* ---------- গেম লজিক ---------- */
 
   function spawnEgg() {
     const lane = Math.floor(rand(0, LANE_COUNT));
@@ -109,15 +113,33 @@
 
   function burst(x, y) {
     const colors = ['#ffffff', '#ffe08a', '#ffb3c6'];
-    for (let i = 0; i < 18; i++) {
+    for (let i = 0; i < 22; i++) {
       game.parts.push({
         x, y,
         vx: rand(-220, 220),
         vy: rand(-420, -120),
-        life: rand(0.4, 0.8),
+        r: rand(3, 6),
+        life: rand(0.45, 0.85),
+        maxLife: 0.85,
         color: colors[i % colors.length],
+        gravity: 900,
       });
     }
+  }
+
+  function dust() {
+    const feet = laneFeet(game.laneVis);
+    game.parts.push({
+      x: playerX() - 14 * S,
+      y: feet - 2 * S,
+      vx: rand(-90, -40),
+      vy: rand(-50, -20),
+      r: rand(4, 7),
+      life: 0.5,
+      maxLife: 0.5,
+      color: 'rgba(255, 255, 255, 0.55)',
+      gravity: 60,
+    });
   }
 
   function update(dt) {
@@ -126,6 +148,13 @@
     game.dist += (game.speed * dt) / 20;
     game.phase += dt * 10 * (game.speed / 170);
     game.laneVis += (game.lane - game.laneVis) * (1 - Math.exp(-dt * 14));
+
+    // দৌড়ানোর সময় ধুলো
+    game.dustT -= dt;
+    if (game.dustT <= 0) {
+      dust();
+      game.dustT = 0.09;
+    }
 
     game.spawnT -= dt;
     if (game.spawnT <= 0) {
@@ -150,7 +179,7 @@
     for (const p of game.parts) {
       p.x += p.vx * dt;
       p.y += p.vy * dt;
-      p.vy += 900 * dt;
+      p.vy += p.gravity * dt;
       p.life -= dt;
     }
     game.parts = game.parts.filter((p) => p.life > 0);
@@ -175,13 +204,17 @@
   function show(el, on) { el.classList.toggle('hidden', !on); }
 
   function startGame() {
-    const n = (els.name.value || '').trim().slice(0, 12);
-    game.name = n || DEFAULT_NAME;
-    saveName(game.name);
+    if (FORCE_NAME) {
+      game.name = DEFAULT_NAME;
+    } else {
+      const n = (els.name.value || '').trim().slice(0, 12);
+      game.name = n || DEFAULT_NAME;
+      saveName(game.name);
+    }
     els.name.value = game.name;
     Object.assign(game, {
       state: 'playing', lane: 1, laneVis: 1, dist: 0, speed: 170, time: 0,
-      spawnT: 1, phase: 0, throwT: 0, eggs: [], parts: [],
+      spawnT: 1, phase: 0, throwT: 0, eggs: [], parts: [], dustT: 0,
     });
     show(els.menu, false);
     show(els.over, false);
@@ -196,7 +229,7 @@
       game.best = score;
       saveBest(score);
     }
-    els.overMsg.textContent = game.name + ', তুমি ' + score + ' মিটার দৌড়াতে পেরেছো!';
+    els.overMsg.textContent = game.name + ', তুমি ' + score + ' মিটার দৌড়াতে পেরেছো! ' + CHASER_NAME + ' তোমাকে ধরতে পারেনি।';
     els.overScore.textContent = score;
     els.overBest.textContent = game.best;
     show(els.hud, false);
@@ -213,7 +246,7 @@
     }
   }
 
-  /* ---------- drawing helpers ---------- */
+  /* ---------- আঁকার ফাংশন ---------- */
 
   function roundRect(x, y, w, h, r) {
     ctx.beginPath();
@@ -223,6 +256,24 @@
     ctx.arcTo(x, y + h, x, y, r);
     ctx.arcTo(x, y, x + w, y, r);
     ctx.closePath();
+  }
+
+  // মাথার উপরে নামের ট্যাগ। x = কেন্দ্র, y = ট্যাগের মাঝখান
+  function drawNameTag(x, y, text, color) {
+    ctx.save();
+    ctx.font = 'bold ' + Math.round(13 * S) + 'px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    const tw = ctx.measureText(text).width;
+    const pad = 8 * S, h = 20 * S;
+    // স্ক্রিনের বাইরে না যায়
+    const cx = clamp(x, tw / 2 + pad + 4, W - tw / 2 - pad - 4);
+    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+    roundRect(cx - tw / 2 - pad, y - h / 2, tw + pad * 2, h, 8 * S);
+    ctx.fill();
+    ctx.fillStyle = color || '#ffffff';
+    ctx.fillText(text, cx, y);
+    ctx.restore();
   }
 
   function drawCloud(x, y, s) {
@@ -243,7 +294,9 @@
     ctx.fillStyle = g;
     ctx.fillRect(0, 0, W, H);
 
-    const sx = W * 0.82, sy = H * 0.18, sr = 46 * S;
+    // সূর্য, হালকা পালস সহ
+    const pulse = 1 + Math.sin(game.time * 1.5) * 0.03;
+    const sx = W * 0.82, sy = H * 0.18, sr = 46 * S * pulse;
     const glow = ctx.createRadialGradient(sx, sy, sr * 0.5, sx, sy, sr * 2.6);
     glow.addColorStop(0, 'rgba(255, 230, 140, 0.55)');
     glow.addColorStop(1, 'rgba(255, 230, 140, 0)');
@@ -336,12 +389,14 @@
     ctx.fillStyle = '#2b1a12';
     ctx.beginPath(); ctx.arc(3, -63, 1.6, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
+
+    // তাড়াকারীর নামের ট্যাগ
+    drawNameTag(x, feet - 92 * S, CHASER_NAME, '#ffb3c6');
   }
 
   function drawEggs() {
     for (const e of game.eggs) {
       const feet = laneFeet(e.lane);
-      // ছায়া
       ctx.fillStyle = 'rgba(0, 0, 0, 0.18)';
       ctx.beginPath();
       ctx.ellipse(e.x, feet + 2 * S, 10 * S, 3 * S, 0, 0, Math.PI * 2);
@@ -377,7 +432,7 @@
     ctx.scale(S, S);
     ctx.lineCap = 'round';
 
-    // পা (দৌড়ানোর সময় দুলবে)
+    // পা
     ctx.strokeStyle = '#2b3158';
     ctx.lineWidth = 7;
     ctx.beginPath();
@@ -410,28 +465,16 @@
     ctx.beginPath(); ctx.arc(4, -62, 1.6, 0, Math.PI * 2); ctx.fill();
     ctx.restore();
 
-    // নামের ট্যাগ
-    ctx.save();
-    ctx.font = 'bold ' + Math.round(13 * S) + 'px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    const tw = ctx.measureText(game.name).width;
-    const pad = 8 * S, h = 20 * S;
-    const ty = feet - 92 * S;
-    ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
-    roundRect(x - tw / 2 - pad, ty - h / 2, tw + pad * 2, h, 8 * S);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.fillText(game.name, x, ty);
-    ctx.restore();
+    // খেলোয়াড়ের নামের ট্যাগ
+    drawNameTag(x, feet - 92 * S, game.name, '#ffffff');
   }
 
   function drawParticles() {
     for (const p of game.parts) {
-      ctx.globalAlpha = Math.max(0, p.life / 0.8);
+      ctx.globalAlpha = Math.max(0, p.life / p.maxLife);
       ctx.fillStyle = p.color;
       ctx.beginPath();
-      ctx.arc(p.x, p.y, 4 * S, 0, Math.PI * 2);
+      ctx.arc(p.x, p.y, p.r * S, 0, Math.PI * 2);
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -450,7 +493,7 @@
     els.best.textContent = game.best;
   }
 
-  /* ---------- loop & input ---------- */
+  /* ---------- লুপ ও ইনপুট ---------- */
 
   let last = performance.now();
   function loop(now) {
@@ -477,6 +520,7 @@
       return;
     }
     if (k === 'p' || k === 'P') {
+      if (document.activeElement === els.name) return; // নাম লেখার সময় P কে পজ না করা
       togglePause();
       return;
     }
@@ -492,6 +536,9 @@
     move(e.clientY < H / 2 ? -1 : 1);
   });
 
+  // iOS এ স্ক্রল/জুম আটকানো
+  document.addEventListener('touchmove', (e) => e.preventDefault(), { passive: false });
+
   els.start.addEventListener('click', startGame);
   els.restart.addEventListener('click', startGame);
   els.restartPause.addEventListener('click', startGame);
@@ -499,7 +546,15 @@
   els.pause.addEventListener('click', togglePause);
   window.addEventListener('resize', resize);
 
+  // নাম সেটআপ
   els.name.value = loadName();
+  if (FORCE_NAME) {
+    els.name.value = DEFAULT_NAME;
+    els.name.disabled = true;
+    els.name.placeholder = DEFAULT_NAME;
+  }
+  game.name = els.name.value || DEFAULT_NAME;
+
   resize();
   show(els.menu, true);
   show(els.hud, false);
