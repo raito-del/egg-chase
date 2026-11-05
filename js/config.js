@@ -7,7 +7,7 @@ window.EGG_CHASE_CONFIG = {
   playerName: 'Mim The Dim',
 
   // ২) তাড়াকারীর নাম (যে ডিম ছোড়ে), সর্বোচ্চ ১২ অক্ষর
-  chaserName: 'SADNAN',
+  chaserName: 'SADMAN',
 
   // true: সব browser এ (Chrome, Messenger, যেকোনো জায়গায়) এই নামই দেখাবে।
   // false: খেলোয়াড় গেমের ভেতরে নাম বদলাতে পারবে, কিন্তু সেটা শুধু ওই browser এ মনে থাকবে।
