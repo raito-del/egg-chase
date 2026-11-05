@@ -13,21 +13,35 @@
   <div id="menu" class="overlay">
     <div class="card">
       <h1>EGG<br>CHASE</h1>
-      <p class="sub">ডিমগুলো এড়িয়ে দৌড়াও!</p>
+      <p class="sub">ডিম এড়াও, কয়েন কুড়াও, ঢাল পাও!</p>
       <label class="label" for="name">তোমার নাম</label>
       <input id="name" type="text" maxlength="12" placeholder="Enter your name" autocomplete="off" />
       <button id="start" class="btn">শুরু করো</button>
       <p class="help">
-        ডেস্কটপ: ↑ ↓ বা W S দিয়ে লেন বদলাও · P দিয়ে পজ<br>
-        মোবাইল: স্ক্রিনের উপরের অর্ধেক ট্যাপ = উপরের লেন, নিচের অর্ধেক = নিচের লেন
+        ডেস্কটপ: তীর বা W A S D দিয়ে যেদিকে খুশি যাও · P দিয়ে পজ<br>
+        মোবাইল: স্ক্রিনের যেখানে চাপবে বা টানবে রানার সেদিকে যাবে, অথবা নিচের বাটন ব্যবহার করো<br>
+        🪙 কয়েন = +5 · 🛡 ঢাল = একবার ডিম আটকায় · খুব কাছ দিয়ে ডিম গেলে বোনাস
       </p>
     </div>
   </div>
 
   <div id="hud" class="hud hidden">
-    <div class="pill"><span id="dist">0</span> m</div>
+    <div class="hud-left">
+      <div class="pill">স্কোর <span id="dist">0</span></div>
+      <div class="pill">🪙 <span id="coins">0</span></div>
+    </div>
     <button id="pause" class="pill pause-btn" aria-label="পজ">❚❚</button>
-    <div class="pill">Best <span id="best">0</span> m</div>
+    <div class="hud-right">
+      <div class="pill">🛡 <span id="shields">0</span></div>
+      <div class="pill">Best <span id="best">0</span></div>
+    </div>
+  </div>
+
+  <div class="touchpad" aria-hidden="true">
+    <button id="upBtn" class="touch-btn b-up" aria-label="উপরে">▲</button>
+    <button id="leftBtn" class="touch-btn b-left" aria-label="বামে">◀</button>
+    <button id="rightBtn" class="touch-btn b-right" aria-label="ডানে">▶</button>
+    <button id="downBtn" class="touch-btn b-down" aria-label="নিচে">▼</button>
   </div>
 
   <div id="pauseScreen" class="overlay hidden">
@@ -42,8 +56,8 @@
     <div class="card">
       <h2>Game Over</h2>
       <p id="overMsg" class="sub"></p>
-      <p class="score">স্কোর: <span id="overScore">0</span> m</p>
-      <p class="sub">সেরা: <span id="overBest">0</span> m</p>
+      <p class="score">স্কোর: <span id="overScore">0</span></p>
+      <p class="sub">সেরা: <span id="overBest">0</span></p>
       <button id="restart" class="btn">আবার খেলো</button>
     </div>
   </div>

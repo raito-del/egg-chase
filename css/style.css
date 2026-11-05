@@ -145,6 +145,36 @@ input:disabled { opacity: 0.6; }
   font-size: 15px; cursor: pointer;
 }
 
+/* ---------- ফোনে স্ক্রিনের দিক-বাটন ---------- */
+.touchpad {
+  display: none;
+  position: fixed;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(14px, env(safe-area-inset-bottom));
+  grid-template-columns: repeat(3, 62px);
+  grid-template-rows: repeat(3, 62px);
+  gap: 8px;
+  z-index: 6;
+}
+@media (pointer: coarse) {
+  body[data-state="playing"] .touchpad { display: grid; }
+}
+.b-up    { grid-area: 1 / 2; }
+.b-left  { grid-area: 2 / 1; }
+.b-right { grid-area: 2 / 3; }
+.b-down  { grid-area: 3 / 2; }
+.touch-btn {
+  width: 62px; height: 62px; border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: rgba(10, 14, 30, 0.55);
+  color: #fff; font-size: 22px; font-weight: 800;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.35);
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+.touch-btn:active { background: rgba(255, 210, 63, 0.5); transform: scale(0.94); }
+
 /* ---------- মোবাইল (ছোট স্ক্রিন) ---------- */
 @media (max-width: 600px) {
   .card { padding: 22px 18px; border-radius: 18px; }
@@ -166,3 +196,13 @@ input:disabled { opacity: 0.6; }
   input { padding: 10px 14px; margin-bottom: 8px; }
   .btn { padding: 10px; margin-bottom: 6px; }
 }
+
+/* ---------- HUD এর বাঁ ও ডান গ্রুপ ---------- */
+.hud-left, .hud-right {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  max-width: 44vw;
+}
+.hud-right { justify-content: flex-end; }
